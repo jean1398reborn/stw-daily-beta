@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import math
 import random
-import ujson
+import json
 import re
 import os
 import sys

@@ -1,5 +1,5 @@
-py-cord @ git+https://github.com/Pycord-Development/pycord@1bb5ac38d20ebb6a84eb348cb2b6edb4d6e2f4cc
 aiohttp==3.7.4.post0
+discord.py==1.7.3
 psutil==5.9.0
 tomli==2.0.1
-
+ujson==5.2.0

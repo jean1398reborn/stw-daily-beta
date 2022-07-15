@@ -11,7 +11,7 @@ import time
 import stwutil as stw
 import items
 import timeit
-import ujson
+import json
 import logging
 
 import discord
