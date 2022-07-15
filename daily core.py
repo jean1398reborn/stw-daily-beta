@@ -13,7 +13,6 @@ import items
 import timeit
 import json
 import logging
-import ujson
 
 import discord
 import discord.ext.commands as ext
@@ -68,7 +67,7 @@ def main():
     client.run(f"{os.environ['STW_DAILY_TOKEN']}")
     
 async def create_http_session():
-    return aiohttp.ClientSession(json_serialize=ujson.dumps)
+    return aiohttp.ClientSession()
     
 # basic information for you <33
 @client.event
