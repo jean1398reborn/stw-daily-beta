@@ -13,6 +13,7 @@ import items
 import timeit
 import json
 import logging
+import ujson
 
 import discord
 import discord.ext.commands as ext
