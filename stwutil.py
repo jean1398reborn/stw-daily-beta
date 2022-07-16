@@ -16,7 +16,7 @@ import discord
 import discord.ext.commands as ext
 from discord import Option
 
-guild_ids=[]
+guild_ids=None
 
 # a small bridge helper function between slash commands and normal commands
 async def slash_send_embed(ctx, slash, embeds, view=None):
