@@ -141,7 +141,7 @@ class Daily(ext.Cog):
                 \u200b
                 **{reward[1]} Todays reward was:**
                 ```{reward[0]}```
-                You can claim tommorow's reward in <t:{int(datetime.datetime.combine(datetime.datetime.utcnow()+datetime.timedelta(days=1), datetime.datetime.min.time()).replace(tzinfo=datetime.timezone.utc).timestamp())}:R>
+                You can claim tommorow's reward <t:{int(datetime.datetime.combine(datetime.datetime.utcnow()+datetime.timedelta(days=1), datetime.datetime.min.time()).replace(tzinfo=datetime.timezone.utc).timestamp())}:R>
                 \u200b
                 """, colour=yellow)
                 embed = await stw.set_thumbnail(self.client,embed, "warn")
