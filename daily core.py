@@ -1,3 +1,6 @@
+print("Starting STW Daily")
+
+
 import asyncio
 import aiohttp
 import math
@@ -18,7 +21,7 @@ import discord
 import discord.ext.commands as ext
 from discord.ext import tasks
 from discord import Option
-
+    
 # Compatability layer for future versions of python 3.11+ 
 try:
     import tomllib as toml
