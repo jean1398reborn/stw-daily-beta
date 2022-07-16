@@ -1,1 +1,1 @@
-worker: python "daily core.py"
+web: python "daily core.py"
