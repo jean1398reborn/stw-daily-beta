@@ -236,7 +236,7 @@ async def slash_edit_original(msg, slash, embeds, view=None):
         if view != None: return await msg.edit_original_message(embeds=embeds,view=view)
         else: return await msg.edit_original_message(embeds=embeds)
         
-async def profile_request(client, req_type, auth_entry, data="{}"):
+async def profile_request(client, req_type, auth_entry, data="{}", json=None):
     
     token = auth_entry["token"]
     url = client.config["endpoints"]["profile"].format(auth_entry["account_id"], client.config["profile"][req_type])
@@ -245,8 +245,11 @@ async def profile_request(client, req_type, auth_entry, data="{}"):
         "Authorization": f"bearer {token}"
     }
 
-    return await client.stw_session.post(url,  headers=header, data=data)
-
+    if json== None:
+        return await client.stw_session.post(url,  headers=header, data=data)
+    else:
+        return await client.stw_session.post(url,  headers=header, json=json)
+    
 def vbucks_query_check(profile_text):
     if 'Token:receivemtxcurrency' in profile_text:
         return True
@@ -441,8 +444,184 @@ async def get_or_create_auth_session(client, ctx, command, auth_code, slash, add
     embeds.append(embed)
     return [message, entry, embeds]
 
+async def post_error_possibilities(ctx, client, command, acc_name, error_code, support_url):
+    error_colour = client.colours["error_red"]
+    embed = None
 
-    
+    # Epic Games Error Codes
+    if error_code == "errors.com.epicgames.common.missing_action":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to claim daily because:**
+            ⦾ Your account has not yet opened Fortnite before
+            ⦾ Your account has been banned and therefore you cannot claim your daily rewards.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+    elif error_code == "errors.com.epicgames.fortnite.check_access_failed":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to claim daily because this account does not own Fortnite: Save The World:**
+            ⦾ You need STW to claim your any rewards, Note: you can only get V-Bucks if you own a __Founders Pack__ which is no longer available.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+    elif error_code == "errors.com.epicgames.common.authentication.token_verification_failed":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to claim daily because your token as expired**
+            ⦾ Please reauthenticate your account, you can get an auth code from:
+
+            [Here if you **ARE NOT** signed into Epic Games on your browser](https://www.epicgames.com/id/logout?redirectUrl=https%3A%2F%2Fwww.epicgames.com%2Fid%2Flogin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.epicgames.com%252Fid%252Fapi%252Fredirect%253FclientId%253Dec684b8c687f479fadea3cb2ad83f5c6%2526responseType%253Dcode)
+            [Here if you **ARE** signed into Epic Games on your browser](https://www.epicgames.com/id/api/redirect?clientId=ec684b8c687f479fadea3cb2ad83f5c6&responseType=code)\n
+
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+    elif error_code == "errors.com.epicgames.validation.validation_failed":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Uh oh! Ran into an error with STW Daily or Epic Games**
+            ⦾ Validation for a request has failed
+            ⦾ Please ask for support in the support server about this.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+
+
+    # STW Daily Error Codes
+    elif error_code == "errors.stwdaily.failed_guid_research":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to find GUID for research item**
+            ⦾ Please ensure you have claimed research points atleast once in-game
+            ⦾ If this continues please ask for support in the support server.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+
+    elif error_code == "errors.stwdaily.failed_get_collected_resource_item":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to get item from notifications using token_guid_research**
+            ⦾ Please ensure you have claimed research points atleast once in-game
+            ⦾ If this continues please ask for support in the support server.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+        
+    elif error_code == "errors.stwdaily.failed_get_collected_resource_type":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to get collectedResourceResult type from notifications**
+            ⦾ Please ensure you have claimed research points atleast once in-game
+            ⦾ If this continues please ask for support in the support server.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+        
+    elif error_code == "errors.stwdaily.failed_total_points":
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Failed to find total research points item from query profile**
+            ⦾ Please ensure you have claimed research points atleast once in-game
+            ⦾ If this continues please ask for support in the support server.
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+        
+    else:
+        embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""\u200b
+            Attempted to claim daily for account:
+            ```{acc_name}```
+            **Unknown error recieved from epic games:**
+            ```{error_code}```
+            
+            You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+    embed = await set_thumbnail(client, embed, "error")
+    embed = await add_requested_footer(ctx, embed)
+    return embed
         
     
 

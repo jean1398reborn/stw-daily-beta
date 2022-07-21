@@ -60,61 +60,7 @@ class Daily(ext.Cog):
             error_code = json_response["errorCode"]
             support_url = self.client.config["support_url"]
             acc_name = auth_info[1]["account_name"]
-            embed = None
-            if error_code == "errors.com.epicgames.common.missing_action":
-                embed = discord.Embed(
-                    title=await stw.add_emoji_title(self.client, stw.ranerror(self.client), "error"),
-                    description=f"""\u200b
-                    Attempted to claim daily for account:
-                    ```{acc_name}```
-                    **Failed to claim daily because:**
-                    ⦾ Your account has not yet opened Fortnite before
-                    ⦾ Your account has been banned and therefore you cannot claim your daily rewards.
-                    
-                    You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
-                    \u200b
-                    **If you need any help try:**
-                    {await stw.mention_string(self.client, f"help daily")}
-                    Or [Join the support server]({support_url})
-                    Note: You need a new code __every time you authenticate__\n\u200b""",
-                    colour=error_colour
-                )
-            elif error_code == "errors.com.epicgames.fortnite.check_access_failed":
-                embed = discord.Embed(
-                    title=await stw.add_emoji_title(self.client, stw.ranerror(self.client), "error"),
-                    description=f"""\u200b
-                    Attempted to claim daily for account:
-                    ```{acc_name}```
-                    **Failed to claim daily because this account does not own Fortnite: Save The World:**
-                    ⦾ You need STW to claim your any rewards, Note: you can only get V-Bucks if you own a __Founders Pack__ which is no longer available.
-                    
-                    You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
-                    \u200b
-                    **If you need any help try:**
-                    {await stw.mention_string(self.client, f"help daily")}
-                    Or [Join the support server]({support_url})
-                    Note: You need a new code __every time you authenticate__\n\u200b""",
-                    colour=error_colour
-                )
-            else:
-                embed = discord.Embed(
-                    title=await stw.add_emoji_title(self.client, stw.ranerror(self.client), "error"),
-                    description=f"""\u200b
-                    Attempted to claim daily for account:
-                    ```{acc_name}```
-                    **Unknown error recieved from epic games:**
-                    ```{error_code}```
-                    
-                    You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
-                    \u200b
-                    **If you need any help try:**
-                    {await stw.mention_string(self.client, f"help daily")}
-                    Or [Join the support server]({support_url})
-                    Note: You need a new code __every time you authenticate__\n\u200b""",
-                    colour=error_colour
-                )
-            embed = await stw.set_thumbnail(self.client, embed, "error")
-            embed = await stw.add_requested_footer(ctx, embed)
+            embed = await stw.post_error_possibilities(ctx, self.client, "daily", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
         except:

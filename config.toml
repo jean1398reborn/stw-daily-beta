@@ -36,7 +36,7 @@ known_auth_codes = [
 	]
 
 # permitted time for an auth session to run for (keep it below 5 hours)
-auth_expire_time = 28000
+auth_expire_time = 28800
 
 # Names for the different shards
 shard_names = [

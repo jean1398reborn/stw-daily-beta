@@ -102,7 +102,13 @@ class Help(ext.Cog):
         help_options += await self.select_options_commands()
 
         class HelpView(discord.ui.View):
-            
+            def __init__(self, author):
+                super().__init__()
+                self.author = author
+                
+            async def interaction_check(self, interaction):
+                return self.author == interaction.user
+    
             @discord.ui.select(
                 placeholder="Select a help page here",
                 min_values=1,
@@ -113,7 +119,7 @@ class Help(ext.Cog):
                 embed=await self.help.help_embed(ctx, select.values[0])
                 await interaction.response.edit_message(embed=embed, view=self)
 
-        help_view = HelpView()
+        help_view = HelpView(author=ctx.author)
         help_view.help = self
         
         await stw.slash_send_embed(ctx, slash, embed, help_view)
@@ -124,7 +130,7 @@ class Help(ext.Cog):
     @ext.command(name='help',
                 aliases=['halp', 'holp', 'how', 'hel', 'h', '?', 'helpp', 'huh'],
                 extras={'emoji':"info", 'args':{'command': "A command to display a more detailed information guide of (Optional)"}},
-                brief="Displays commands info",
+                brief="Displays commands info, only the author may use the select",
                 description="A command which displays information about all other commands, helpful to understand the usage of each command and their purpose.")
     async def help(self, ctx, command = None):
         await self.help_command(ctx, command)

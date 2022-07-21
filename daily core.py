@@ -60,6 +60,7 @@ def main():
         "auth",
         "daily",
         "info",
+        "research",
         ]
 
     # load the extensions
