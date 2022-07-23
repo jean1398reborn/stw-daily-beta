@@ -50,11 +50,29 @@ class Research(ext.Cog):
             except: pass
 
         return None
-        
+    async def add_fort_fields(self, embed, current_levels):
+        offense = current_levels["offense"]
+        fortitude = current_levels["fortitude"]
+        resistance = current_levels["resistance"]
+        tech = current_levels["technology"]
+
+        embed.add_field(name= "\u200B", value= "\u200B", inline=True)
+        embed.add_field(name=f'**{self.client.config["emojis"]["fortitude"]} Fortitude: **',
+            value=f'```{fortitude}```\u200b', inline=True)
+        embed.add_field(name=f'**{self.client.config["emojis"]["offense"]} Offense: **',
+            value=f'```{offense}```\u200b', inline=True)
+        embed.add_field(name= "\u200B", value= "\u200B", inline=True)
+        embed.add_field(name=f'**{self.client.config["emojis"]["resistance"]} Resistance: **',
+            value=f'```{resistance}```\u200b', inline=True)
+        embed.add_field(name=f'**{self.client.config["emojis"]["tech"]} Tech: **',
+            value=f'```{tech}```\u200b', inline=True)
+        return embed
+    
     async def research_command(self, ctx, slash, authcode, auth_opt_out):
         error_colour = self.client.colours["error_red"]
         succ_colour = self.client.colours["success_green"]
         yellow = self.client.colours["warning_yellow"]
+        crown_yellow = self.client.colours["crown_yellow"]
         
         auth_info = await stw.get_or_create_auth_session(self.client, ctx, "daily", authcode, slash, auth_opt_out, True)
         if auth_info[0] == False:
@@ -76,39 +94,51 @@ class Research(ext.Cog):
         current_research_statistics_request = await stw.profile_request(self.client, "query", auth_info[1])
         json_response = await current_research_statistics_request.json()
 
+        support_url = self.client.config["support_url"]
+        acc_name = auth_info[1]["account_name"]
+            
         try:
             error_code = json_response["errorCode"]
-            support_url = self.client.config["support_url"]
-            acc_name = auth_info[1]["account_name"]
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
-        except:
-            current_levels = json_response['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
+        except: pass
 
-            # Find research guid to post too required for ClaimCollectedResources json
-            research_guid_check = await asyncio.gather(asyncio.to_thread(self.check_for_research_guid_key, json_response))
-            print(research_guid_check)
-            if research_guid_check[0] == None:
-                error_code = "errors.stwdaily.failed_guid_research"
-                support_url = self.client.config["support_url"]
-                acc_name = auth_info[1]["account_name"]
-                embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
-                final_embeds.append(embed)
-                await stw.slash_edit_original(auth_info[0], slash, final_embeds)
-                return
+        
+        current_levels = json_response['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
 
-            research_guid = research_guid_check[0]
-            pass
+        if current_levels["offense"] + current_levels["fortitude"] + current_levels["resistance"] + current_levels["technology"] == 480:
+            embed = discord.Embed(
+                title=await stw.add_emoji_title(self.client, "Max", "crown"),
+                description="""\u200bCongratulations, you have maximum FORT stats.\n\u200b""",
+                colour=crown_yellow
+            )
+            
+            await self.add_fort_fields(embed, current_levels)
+            embed = await stw.set_thumbnail(self.client, embed, "crown")
+            embed = await stw.add_requested_footer(ctx, embed)
+            final_embeds.append(embed)
+            await stw.slash_edit_original(auth_info[0], slash, final_embeds)
+            return
+        
+        # Find research guid to post too required for ClaimCollectedResources json
+        research_guid_check = await asyncio.gather(asyncio.to_thread(self.check_for_research_guid_key, json_response))
+        print(research_guid_check)
+        if research_guid_check[0] == None:
+            error_code = "errors.stwdaily.failed_guid_research"
+            embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
+            final_embeds.append(embed)
+            await stw.slash_edit_original(auth_info[0], slash, final_embeds)
+            return
 
+        research_guid = research_guid_check[0]
+        pass
+        
         current_research_statistics_request = await stw.profile_request(self.client, "resources", auth_info[1], json={ "collectorsToClaim": [research_guid]  })
         json_response = await current_research_statistics_request.json()
 
         try:
             error_code = json_response["errorCode"]
-            support_url = self.client.config["support_url"]
-            acc_name = auth_info[1]["account_name"]
-            print(json_response)
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
@@ -120,8 +150,6 @@ class Research(ext.Cog):
         print(total_points_check)
         if total_points_check[0] == None:
             error_code = "errors.stwdaily.failed_total_points"
-            support_url = self.client.config["support_url"]
-            acc_name = auth_info[1]["account_name"]
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
@@ -130,6 +158,7 @@ class Research(ext.Cog):
         total_points = total_points_check[0]
             
         # Get CollectedResourceResult feedback
+        print(json_response)
         research_feedback, check = json_response["notifications"], False
         
         for notification in research_feedback:
@@ -139,8 +168,6 @@ class Research(ext.Cog):
             
         if not check:
             error_code = "errors.stwdaily.failed_get_collected_resource_type"
-            support_url = self.client.config["support_url"]
-            acc_name = auth_info[1]["account_name"]
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
@@ -157,8 +184,6 @@ class Research(ext.Cog):
 
         if not check:
             error_code = "errors.stwdaily.failed_get_collected_resource_item"
-            support_url = self.client.config["support_url"]
-            acc_name = auth_info[1]["account_name"]
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)

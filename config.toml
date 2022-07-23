@@ -84,8 +84,13 @@ trapgeneric		= "<:TIconTrapsCARD:947728032813183076>"
 defendergeneric = "<:TIconDefenders_CARD:947728018657390632>"
 leadsurvivor	= "<:TIconSurvivorLeaderCARD:947728019450126356>"
 xpboost			= "<:IconXPXL:812201307133313044>"
+fortitude 		= "<:TIconFortitude:1000217972549357568>"
+tech 			= "<:TIconTech:1000217968560578600>"
+offense 		= "<:TIconOffense:1000217970552877086>"
+resistance 		= "<:TIconResistance:1000217966618615828>"
 survivorgeneric	= "<:GenericWorkercopy:947728015683616778>"
 teammatexpboost = "<:IconGiftXPXL:812201304670601227>"
+crown 			= "👑"
 celebrate 		= "🎉"
 
 
@@ -102,7 +107,7 @@ calendar	= "https://cdn.discordapp.com/attachments/767607876348018689/9477520895
 urlauthcode	= "https://cdn.discordapp.com/attachments/757768833946877992/874560824482623568/unknown.png?size=4096"
 keycard		= "https://media.discordapp.net/attachments/643743040372080653/956798526149509120/Ghost_Keycard.PNG"
 stormbottle = "https://media.discordapp.net/attachments/767607876348018689/947705710295261284/T-Items-Reagent-C-T02-L.png?width=410&height=410"
-
+crown 		= "https://cdn.discordapp.com/attachments/643743040372080653/1000266990272913448/discordW_3.png"
 
    
 # Different colours for commands
@@ -114,7 +119,7 @@ research_green 	= [114, 189, 134]
 reward_magenta 	= [255, 0, 255]
 success_green 	= [0, 210, 71]
 auth_white      = [255, 255 ,255]
-			  
+crown_yellow	= [255, 204, 77]
 			  
 # Dont edit values beyond this point unless you know what you're doing!
 
