@@ -49,7 +49,8 @@ class ResearchView(discord.ui.View):
     async def on_timeout(self):
         for child in self.children:
             child.disabled = True
-            
+        total_points = self.total_points
+        current_levels = self.current_levels
         embed = discord.Embed(
             title=await stw.add_emoji_title(self.client, "Research", "research_point"),
             description=f"""\u200b
