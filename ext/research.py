@@ -47,6 +47,8 @@ class ResearchView(discord.ui.View):
         return button
 
     async def on_timeout(self):
+        gren = self.client.colours["research_green"]
+        
         for child in self.children:
             child.disabled = True
         total_points = self.total_points
@@ -59,10 +61,10 @@ class ResearchView(discord.ui.View):
         )
 
         embed = await stw.set_thumbnail(self.client, embed, "research")
-        embed = await stw.add_requested_footer(interaction, embed)
+        embed = await stw.add_requested_footer(self.context, embed)
         embed = await add_fort_fields(self.client, embed, current_levels)
         embed.add_field(name=f"\u200b", value=f"*Timed out, please reuse the command to continue.*\n\u200b")
-        await interaction.edit_original_message(embed=embed, view=self)
+        await self.message.edit(embed=embed, view=self)
         return
 
 
@@ -103,7 +105,28 @@ class ResearchView(discord.ui.View):
         
         current_levels = purchased_json['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
         self.current_levels = current_levels
-        research_points_item = purchased_json['profileChanges'][0]['profile']['items'][self.research_token_guid]
+
+        # What i believe happens is that epic games removes the research points item if you use it all... not too sure if they change the research token guid
+        try:
+            research_points_item = purchased_json['profileChanges'][0]['profile']['items'][self.research_token_guid]
+        except:
+            spent_points = self.total_points['quantity'] - research_points_item['quantity']
+            embed = discord.Embed(
+                title=await stw.add_emoji_title(self.client, "Research", "research_point"),
+                description=f"""\u200b
+                You currently have **0** research points available.\n\u200b\n\u200b""",
+                colour=gren
+            )
+            
+            embed = await add_fort_fields(self.client, embed, current_levels)
+            embed.add_field(name=f"\u200b", value=f"*No more research points!*")
+            embed = await stw.set_thumbnail(self.client, embed, "research")
+            embed = await stw.add_requested_footer(interaction, embed)
+            self.total_points = research_points_item
+            for child in self.children:
+                child.disabled = True
+            await interaction.edit_original_message(embed=embed, view=self)
+            
         spent_points = self.total_points['quantity'] - research_points_item['quantity']
         embed = discord.Embed(
             title=await stw.add_emoji_title(self.client, "Research", "research_point"),
@@ -111,8 +134,6 @@ class ResearchView(discord.ui.View):
             You currently have **{research_points_item['quantity']}** research point{'s' if research_points_item['quantity'] > 1 else ''} available.\n\u200b\n\u200b""",
             colour=gren
         )
-
-        if st
         
         embed = await add_fort_fields(self.client, embed, current_levels)
         embed.add_field(name=f"\u200b", value=f"*Spent **{spent_points}** to level up **{stat}***\n\u200b")
@@ -125,16 +146,17 @@ class ResearchView(discord.ui.View):
 
         
     #creo kinda fire though ngl
-    def __init__(self, client, auth_info, author, total_points, current_levels, research_token_guid):  
+    def __init__(self, client, auth_info, author, total_points, current_levels, research_token_guid, context):
         super().__init__()
         self.client = client
+        self.context = context
         self.auth_info = auth_info
         self.author = author
         self.interaction_check_done = {}
         self.total_points = total_points
         self.current_levels = current_levels
         self.research_token_guid = research_token_guid
-        
+
         self.button_emojis = {
             'fortitude': self.client.config["emojis"]["fortitude"],
             'offense': self.client.config["emojis"]['offense'],
@@ -346,9 +368,10 @@ class Research(ext.Cog):
         claimed_text = ""
         
         if research_points_claimed != None:
-            if research_points_claimed == 1: claimed_text = f"*Claimed **{research_points_claimed}** research point*\n"
+            if research_points_claimed == 1: claimed_text = f"*Claimed **{research_points_claimed}** research point*\n\u200b"
             else: claimed_text = f"*Claimed **{research_points_claimed}** research points*\n\u200b"
-            
+        else:
+            claimed_text = f"*Did not claim any research points*\n\u200b"
         embed = discord.Embed(
             title=await stw.add_emoji_title(self.client, "Research", "research_point"),
             description=f"""\u200b
@@ -360,11 +383,12 @@ class Research(ext.Cog):
         embed.add_field(name=f"\u200b", value=claimed_text)
         embed = await stw.set_thumbnail(self.client, embed, "research")
         embed = await stw.add_requested_footer(ctx, embed)
-        research_view = ResearchView(self.client, auth_info, ctx.author, total_points, current_levels, rp_token_guid)
-        
+
         final_embeds.append(embed)
-        await stw.slash_edit_original(auth_info[0], slash, final_embeds, view=research_view)
-        
+        research_view = ResearchView(self.client, auth_info, ctx.author, total_points, current_levels, rp_token_guid, ctx)
+        research_view.message = await stw.slash_edit_original(auth_info[0], slash, final_embeds, view=research_view)
+
+    
     @ext.command(name='research',
                 aliases=['res', 'rsearch', 'reach','rese','rse','reasearch','resaesaer'],
                 extras={'emoji':"research_point", "args":{'authcode':'The authcode to start an authentication session with if one does not exist, if an auth session already exists this argument is optional (Optional)', 'opt-out':'Any value inputted into this field will opt you out of the authentication session system when you enter the authcode for this command (Optional)'}},

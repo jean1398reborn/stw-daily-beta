@@ -537,9 +537,9 @@ async def post_error_possibilities(ctx, client, command, acc_name, error_code, s
             Attempted to claim daily for account:
             ```{acc_name}```
             **Failed to find GUID for research item**
+            ⦾ You could be out of research points, please just wait a few seconds and re run the command.
             ⦾ Please ensure you have claimed research points atleast once in-game
-            ⦾ If this continues please ask for support in the support server.
-            
+
             You may have signed into the wrong account, try to use incognito and [use this page to get a new code](https://tinyurl.com/epicauthcode)
             \u200b
             **If you need any help try:**
