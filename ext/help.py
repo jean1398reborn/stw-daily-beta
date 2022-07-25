@@ -155,22 +155,6 @@ class Help(ext.Cog):
     async def help(self, ctx, command = None):
         await self.help_command(ctx, command)
 
-    @ext.command(name="rlcg",
-                 aliases=[],
-                extras={'emoji':"info", 'args':{'command': "A command to display a more detailed information guide of (Optional)"}},
-                brief="Displays commands info",
-                description="A command which displays information about all other commands, helpful to understand the usage of each command and their purpose.")
-    async def reload_cog(self, ctx, cog):
-        print(self.client.reload_extension(f'ext.{cog}'))
-
-    @ext.command(name="lcg",
-                 aliases=[],
-                extras={'emoji':"info", 'args':{'command': "A command to display a more detailed information guide of (Optional)"}},
-                brief="Displays commands info",
-                description="A command which displays information about all other commands, helpful to understand the usage of each command and their purpose.")
-    async def load_cog(self, ctx, cog):
-         print(self.client.load_extension(f'ext.{cog}'))             
-
     @slash_command(name='help',      
              description='Displays information about other commands',
                    guild_ids=stw.guild_ids)
