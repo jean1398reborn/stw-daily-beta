@@ -20,6 +20,44 @@ from discord.commands import (  # Importing the decorator that makes slash comma
     slash_command,
 )
 
+class HelpView(discord.ui.View):
+    def __init__(self, ctx, help_options, client):
+        super().__init__()
+        self.ctx = ctx
+        self.author = ctx.author
+        self.children[0].options=help_options
+        self.client = client
+        self.interaction_check_done = {}
+        
+    async def interaction_check(self, interaction):
+        if self.author == interaction.user:
+            return True
+        else:
+            try: already_notified = self.interaction_check_done[interaction.user.id]
+            except:
+                already_notified = False
+                self.interaction_check_done[interaction.user.id] = True
+                
+            if already_notified == False:
+                support_url = self.client.config["support_url"]
+                acc_name = ""
+                error_code = "errors.stwdaily.not_author_interaction_response"
+                embed = await stw.post_error_possibilities(interaction, self.client, "help", acc_name, error_code, support_url)
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return False
+            else:
+                return False
+
+    @discord.ui.select(
+        placeholder="Select a help page here",
+        min_values=1,
+        max_values=1,
+        options=[],
+        )
+    async def selected_option(self, select,interaction):
+        embed=await self.help.help_embed(self.ctx, select.values[0])
+        await interaction.response.edit_message(embed=embed, view=self)
+        
 # cog for the help & hello command.
 class Help(ext.Cog):
 
@@ -76,7 +114,7 @@ class Help(ext.Cog):
         embed_colour = self.client.colours["generic_blue"]
         embed = discord.Embed(colour=embed_colour, title=await stw.add_emoji_title(self.client, "Help", "info"), description="\u200b")
         names = map(lambda command: command.name, self.client.commands)
-
+        
         if command not in names:
             embed = await self.add_default_page(ctx, embed, embed_colour)
         else:
@@ -101,25 +139,7 @@ class Help(ext.Cog):
         help_options = [discord.SelectOption(label="all",value="main_menu",description="Display a brief amount of info about every command",emoji=self.emojis['blueinfo'], default= False)]
         help_options += await self.select_options_commands()
 
-        class HelpView(discord.ui.View):
-            def __init__(self, author):
-                super().__init__()
-                self.author = author
-                
-            async def interaction_check(self, interaction):
-                return self.author == interaction.user
-    
-            @discord.ui.select(
-                placeholder="Select a help page here",
-                min_values=1,
-                max_values=1,
-                options=help_options,
-                )
-            async def selected_option(self, select,interaction):
-                embed=await self.help.help_embed(ctx, select.values[0])
-                await interaction.response.edit_message(embed=embed, view=self)
-
-        help_view = HelpView(author=ctx.author)
+        help_view = HelpView(ctx, help_options, self.client)
         help_view.help = self
         
         await stw.slash_send_embed(ctx, slash, embed, help_view)
@@ -141,7 +161,7 @@ class Help(ext.Cog):
                 brief="Displays commands info",
                 description="A command which displays information about all other commands, helpful to understand the usage of each command and their purpose.")
     async def reload_cog(self, ctx, cog):
-        self.client.reload_extension(f'ext.{cog}')
+        print(self.client.reload_extension(f'ext.{cog}'))
 
     @ext.command(name="lcg",
                  aliases=[],
@@ -149,7 +169,7 @@ class Help(ext.Cog):
                 brief="Displays commands info",
                 description="A command which displays information about all other commands, helpful to understand the usage of each command and their purpose.")
     async def load_cog(self, ctx, cog):
-        self.client.load_extension(f'ext.{cog}')                  
+         print(self.client.load_extension(f'ext.{cog}'))             
 
     @slash_command(name='help',      
              description='Displays information about other commands',

@@ -69,12 +69,18 @@ async def mention_string(client, prompt):
 # adds the requested by person thing to the footer
 async def add_requested_footer(ctx, embed):
     current_time = int(time.time())
-    
-    embed.set_footer(text=
-    f"\nRequested by: {ctx.author.name}"
-    , icon_url=ctx.author.display_avatar.url)
 
+    try:
+        embed.set_footer(text=
+        f"\nRequested by: {ctx.author.name}"
+        , icon_url=ctx.author.display_avatar.url)
+    except:
+        embed.set_footer(text=
+        f"\nRequested by: {ctx.user.name}"
+        , icon_url=ctx.user.display_avatar.url)
+        
     embed.timestamp = datetime.datetime.now()
+    
 
     return embed
 
@@ -412,7 +418,7 @@ async def get_or_create_auth_session(client, ctx, command, auth_code, slash, add
         Note: You need a new code __every time you authenticate__\n\u200b""",
         colour=error_colour)
 
-
+    
     if error_embed != None:
         embed = await set_thumbnail(client, error_embed, "error")
         embed = await add_requested_footer(ctx, embed)
@@ -600,6 +606,21 @@ async def post_error_possibilities(ctx, client, command, acc_name, error_code, s
             colour=error_colour
         )
         
+    elif error_code == "errors.stwdaily.not_author_interaction_response":
+         embed = discord.Embed(
+            title=await add_emoji_title(client, ranerror(client), "error"),
+            description=f"""```You need to be the author to utilise the {command} view!```
+            If you want to utilise this view, please use the command yourself.
+
+            NOTE: *This message is only sent one time, attempting to use buttons after recieving this will return with ``interaction failed``*
+            \u200b
+            **If you need any help try:**
+            {await mention_string(client, f"help {command}")}
+            Or [Join the support server]({support_url})
+            Note: You need a new code __every time you authenticate__\n\u200b""",
+            colour=error_colour
+        )
+        
     else:
         embed = discord.Embed(
             title=await add_emoji_title(client, ranerror(client), "error"),
@@ -617,6 +638,7 @@ async def post_error_possibilities(ctx, client, command, acc_name, error_code, s
             Note: You need a new code __every time you authenticate__\n\u200b""",
             colour=error_colour
         )
+
     embed = await set_thumbnail(client, embed, "error")
     embed = await add_requested_footer(ctx, embed)
     return embed

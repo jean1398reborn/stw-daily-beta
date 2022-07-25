@@ -20,30 +20,165 @@ from discord.commands import (  # Importing the decorator that makes slash comma
     slash_command,
 )
 
+async def add_fort_fields(client, embed, current_levels, extra_white_space=False):
+    offense = current_levels["offense"]
+    fortitude = current_levels["fortitude"]
+    resistance = current_levels["resistance"]
+    technology = current_levels["technology"]
+
+    embed.add_field(name= "\u200B", value= "\u200B", inline=True)
+    embed.add_field(name=f'**{client.config["emojis"]["fortitude"]} Fortitude: **',
+        value=f'```{fortitude}```\u200b', inline=True)
+    embed.add_field(name=f'**{client.config["emojis"]["offense"]} Offense: **',
+        value=f'```{offense}```\u200b', inline=True)
+    embed.add_field(name= "\u200B", value= "\u200B", inline=True)
+    embed.add_field(name=f'**{client.config["emojis"]["resistance"]} Resistance: **',
+        value=f'```{resistance}```\u200b', inline=True)
+
+    extra_white_space = "\u200b\n\u200b\n\u200b" if extra_white_space == True else ""
+    embed.add_field(name=f'**{client.config["emojis"]["technology"]} Technology: **',
+        value=f'```{technology}```{extra_white_space}', inline=True)
+    return embed
+    
 class ResearchView(discord.ui.View):
 
+    def map_button_emojis(self, button):
+        button.emoji = self.button_emojis[button.emoji.name]
+        return button
+
+    async def on_timeout(self):
+        for child in self.children:
+            child.disabled = True
+            
+        embed = discord.Embed(
+            title=await stw.add_emoji_title(self.client, "Research", "research_point"),
+            description=f"""\u200b
+            You currently have **{total_points['quantity']}** research point{'s' if total_points['quantity'] > 1 else ''} available.\n\u200b\n\u200b""",
+            colour=gren
+        )
+
+        embed = await stw.set_thumbnail(self.client, embed, "research")
+        embed = await stw.add_requested_footer(interaction, embed)
+        embed = await add_fort_fields(self.client, embed, current_levels)
+        embed.add_field(name=f"\u200b", value=f"*Timed out, please reuse the command to continue.*\n\u200b")
+        await interaction.edit_original_message(embed=embed, view=self)
+        return
+
+
+
+    async def universal_stat_process(self, button, interaction, stat):
+        gren = self.client.colours["research_green"]
+        
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
+        
+        stat_purchase = await stw.profile_request(self.client, "purchase_research", self.auth_info[1], json={'statId': stat})
+        purchased_json = await stat_purchase.json()
+        
+        total_points = self.total_points
+        current_levels = self.current_levels
+        
+        for child in self.children:
+            child.disabled = False
+
+        try:
+            if purchased_json['errorCode'] == 'errors.com.epicgames.fortnite.item_consumption_failed':
+                embed = discord.Embed(
+                    title=await stw.add_emoji_title(self.client, "Research", "research_point"),
+                    description=f"""\u200b
+                    You currently have **{total_points['quantity']}** research point{'s' if total_points['quantity'] > 1 else ''} available.\n\u200b\n\u200b""",
+                    colour=gren
+                )
+
+                embed = await stw.set_thumbnail(self.client, embed, "research")
+                embed = await stw.add_requested_footer(interaction, embed)
+                embed = await add_fort_fields(self.client, embed, current_levels)
+                embed.add_field(name=f"\u200b", value=f"*You do not have enough points to level up **{stat}***\n\u200b")
+                await interaction.edit_original_message(embed=embed, view=self)
+                return
+        except:
+            pass
+        
+        current_levels = purchased_json['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
+        self.current_levels = current_levels
+        research_points_item = purchased_json['profileChanges'][0]['profile']['items'][self.research_token_guid]
+        spent_points = self.total_points['quantity'] - research_points_item['quantity']
+        embed = discord.Embed(
+            title=await stw.add_emoji_title(self.client, "Research", "research_point"),
+            description=f"""\u200b
+            You currently have **{research_points_item['quantity']}** research point{'s' if research_points_item['quantity'] > 1 else ''} available.\n\u200b\n\u200b""",
+            colour=gren
+        )
+
+        if st
+        
+        embed = await add_fort_fields(self.client, embed, current_levels)
+        embed.add_field(name=f"\u200b", value=f"*Spent **{spent_points}** to level up **{stat}***\n\u200b")
+        embed = await stw.set_thumbnail(self.client, embed, "research")
+        embed = await stw.add_requested_footer(interaction, embed)
+        self.total_points = research_points_item
+        
+        await interaction.edit_original_message(embed=embed, view=self)
+        
+
+        
     #creo kinda fire though ngl
-    def __init__(self, client):  
+    def __init__(self, client, auth_info, author, total_points, current_levels, research_token_guid):  
         super().__init__()
+        self.client = client
+        self.auth_info = auth_info
+        self.author = author
+        self.interaction_check_done = {}
+        self.total_points = total_points
+        self.current_levels = current_levels
+        self.research_token_guid = research_token_guid
+        
+        self.button_emojis = {
+            'fortitude': self.client.config["emojis"]["fortitude"],
+            'offense': self.client.config["emojis"]['offense'],
+            'resistance': self.client.config["emojis"]['resistance'],
+            'technology': self.client.config["emojis"]['technology']
+        }
 
-        # Create the different buttons for the different FORT stats <33
-        async def simple_callback(ctx):
-            await ctx.response.send_message("Beep Boop im a robot!")
+        self.children = list(map(self.map_button_emojis, self.children))
 
-        button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=client.config["emojis"]["fortitude"])
-        button.callback = simple_callback
-        self.add_item(button)
-        button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=client.config["emojis"]["offense"])
-        button.callback = simple_callback
-        self.add_item(button)
-        button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=client.config["emojis"]["resistance"])
-        button.callback = simple_callback
-        self.add_item(button)
-        button = discord.ui.Button(style=discord.ButtonStyle.success, emoji=client.config["emojis"]["tech"])
-        button.callback = simple_callback
-        self.add_item(button)
+    async def interaction_check(self, interaction):
+        if self.author == interaction.user:
+            return True
+        else:
+            try: already_notified = self.interaction_check_done[interaction.user.id]
+            except:
+                already_notified = False
+                self.interaction_check_done[interaction.user.id] = True
+                
+            if already_notified == False:
+                support_url = self.client.config["support_url"]
+                acc_name = ""
+                error_code = "errors.stwdaily.not_author_interaction_response"
+                embed = await stw.post_error_possibilities(interaction, self.client, "research", acc_name, error_code, support_url)
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return False
+            else:
+                return False
+            
+    @discord.ui.button(style=discord.ButtonStyle.success, emoji="fortitude")
+    async def fortitude_button(self, button, interaction):
+        await self.universal_stat_process(button, interaction, "fortitude")
 
-    
+    @discord.ui.button(style=discord.ButtonStyle.success, emoji="offense")
+    async def offense_button(self, button, interaction):
+        await self.universal_stat_process(button, interaction, "offense")
+
+    @discord.ui.button(style=discord.ButtonStyle.success, emoji="resistance")
+    async def resistance_button(self, button, interaction):
+        await self.universal_stat_process(button, interaction, "resistance")
+
+    @discord.ui.button(style=discord.ButtonStyle.success, emoji="technology")
+    async def technology_button(self, button, interaction):
+        await self.universal_stat_process(button, interaction, "technology")
+
+
 # cog for the research related commands.
 class Research(ext.Cog):
     
@@ -78,23 +213,6 @@ class Research(ext.Cog):
             except: pass
 
         return None
-    async def add_fort_fields(self, embed, current_levels):
-        offense = current_levels["offense"]
-        fortitude = current_levels["fortitude"]
-        resistance = current_levels["resistance"]
-        tech = current_levels["technology"]
-
-        embed.add_field(name= "\u200B", value= "\u200B", inline=True)
-        embed.add_field(name=f'**{self.client.config["emojis"]["fortitude"]} Fortitude: **',
-            value=f'```{fortitude}```\u200b', inline=True)
-        embed.add_field(name=f'**{self.client.config["emojis"]["offense"]} Offense: **',
-            value=f'```{offense}```\u200b', inline=True)
-        embed.add_field(name= "\u200B", value= "\u200B", inline=True)
-        embed.add_field(name=f'**{self.client.config["emojis"]["resistance"]} Resistance: **',
-            value=f'```{resistance}```\u200b', inline=True)
-        embed.add_field(name=f'**{self.client.config["emojis"]["tech"]} Technology: **',
-            value=f'```{tech}```\u200b', inline=True)
-        return embed
     
     async def research_command(self, ctx, slash, authcode, auth_opt_out):
         error_colour = self.client.colours["error_red"]
@@ -138,11 +256,11 @@ class Research(ext.Cog):
             embed = discord.Embed(
                 title=await stw.add_emoji_title(self.client, "Max", "crown"),
                 description="""\u200b
-                Congratulations, you have **maximum** FORT stats.\n\u200b""",
+                Congratulations, you have **maximum** FORT stats.\n\u200b\n\u200b""",
                 colour=crown_yellow
             )
             
-            await self.add_fort_fields(embed, current_levels)
+            await add_fort_fields(self.client, embed, current_levels, True)
             embed = await stw.set_thumbnail(self.client, embed, "crown")
             embed = await stw.add_requested_footer(ctx, embed)
             final_embeds.append(embed)
@@ -227,26 +345,24 @@ class Research(ext.Cog):
         claimed_text = ""
         
         if research_points_claimed != None:
-            if research_points_claimed == 1: claimed_text = f"*Claimed **{research_points_claimed}** research point,*\n"
-            else: claimed_text = f"*Claimed **{research_points_claimed}** research points,*\n"
+            if research_points_claimed == 1: claimed_text = f"*Claimed **{research_points_claimed}** research point*\n"
+            else: claimed_text = f"*Claimed **{research_points_claimed}** research points*\n\u200b"
+            
         embed = discord.Embed(
             title=await stw.add_emoji_title(self.client, "Research", "research_point"),
             description=f"""\u200b
-            {claimed_text}You currently have **{total_points['quantity']}** research point{'s' if total_points['quantity'] > 1 else ''} available. \n\u200b""",
+            You currently have **{total_points['quantity']}** research point{'s' if total_points['quantity'] > 1 else ''} available. \n\u200b\n\u200b""",
             colour=gren
         )
         
-        await self.add_fort_fields(embed, current_levels)
+        embed = await add_fort_fields(self.client, embed, current_levels)
+        embed.add_field(name=f"\u200b", value=claimed_text)
         embed = await stw.set_thumbnail(self.client, embed, "research")
         embed = await stw.add_requested_footer(ctx, embed)
-        research_view = ResearchView(self.client)
+        research_view = ResearchView(self.client, auth_info, ctx.author, total_points, current_levels, rp_token_guid)
         
         final_embeds.append(embed)
         await stw.slash_edit_original(auth_info[0], slash, final_embeds, view=research_view)
-
-        
-        
-        await ctx.send(f"{research_points_claimed} {total_points} {current_levels}")
         
     @ext.command(name='research',
                 aliases=['res', 'rsearch', 'reach','rese','rse','reasearch','resaesaer'],

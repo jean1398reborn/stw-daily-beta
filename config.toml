@@ -85,7 +85,7 @@ defendergeneric = "<:TIconDefenders_CARD:947728018657390632>"
 leadsurvivor	= "<:TIconSurvivorLeaderCARD:947728019450126356>"
 xpboost			= "<:IconXPXL:812201307133313044>"
 fortitude 		= "<:TIconFortitude:1000217972549357568>"
-tech 			= "<:TIconTech:1000217968560578600>"
+technology		= "<:TIconTech:1000217968560578600>"
 offense 		= "<:TIconOffense:1000217970552877086>"
 resistance 		= "<:TIconResistance:1000217966618615828>"
 survivorgeneric	= "<:GenericWorkercopy:947728015683616778>"
@@ -133,6 +133,7 @@ exchange 	= "https://account-public-service-prod.ol.epicgames.com/account/api/oa
 
 # different requests under profile
 [profile]
-query 		= "QueryProfile"
-resources 	= "ClaimCollectedResources"
-login		= "ClaimLoginReward"
+query 				= "QueryProfile"
+resources 			= "ClaimCollectedResources"
+login				= "ClaimLoginReward"
+purchase_research 	= "PurchaseResearchStatUpgrade"
