@@ -104,6 +104,7 @@ class ResearchView(discord.ui.View):
             pass
         
         current_levels = purchased_json['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
+        current_levels = await default_current_values(current_levels)   
         self.current_levels = current_levels
         
         # What i believe happens is that epic games removes the research points item if you use it all... not too sure if they change the research token guid
@@ -201,6 +202,18 @@ class ResearchView(discord.ui.View):
     async def technology_button(self, button, interaction):
         await self.universal_stat_process(button, interaction, "technology")
 
+async def default_current_values(current_levels):
+    try:    current_levels["fortitude"]
+    except: current_levels["fortitude"] = 0
+
+    try:    current_levels["offense"]
+    except: current_levels["offense"] = 0
+
+    try:    current_levels["resistance"]
+    except: current_levels["resistance"] = 0
+
+    try:    current_levels["technology"]
+    except: current_levels["technology"] = 0
 
 # cog for the research related commands.
 class Research(ext.Cog):
@@ -279,18 +292,7 @@ class Research(ext.Cog):
             print(e, json_response)
             return
 
-        try:    current_levels["fortitude"]
-        except: current_levels["fortitude"] = 0
-
-        try:    current_levels["offense"]
-        except: current_levels["offense"] = 0
-
-        try:    current_levels["resistance"]
-        except: current_levels["resistance"] = 0
-
-        try:    current_levels["technology"]
-        except: current_levels["technology"] = 0
-        
+        current_levels = await default_current_values(current_levels)        
         if current_levels["offense"] + current_levels["fortitude"] + current_levels["resistance"] + current_levels["technology"] == 480:
             embed = discord.Embed(
                 title=await stw.add_emoji_title(self.client, "Max", "crown"),
