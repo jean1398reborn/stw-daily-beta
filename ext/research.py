@@ -105,12 +105,12 @@ class ResearchView(discord.ui.View):
         
         current_levels = purchased_json['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
         self.current_levels = current_levels
-
+        
         # What i believe happens is that epic games removes the research points item if you use it all... not too sure if they change the research token guid
         try:
             research_points_item = purchased_json['profileChanges'][0]['profile']['items'][self.research_token_guid]
         except:
-            spent_points = self.total_points['quantity'] - research_points_item['quantity']
+            print(purchased_json)
             embed = discord.Embed(
                 title=await stw.add_emoji_title(self.client, "Research", "research_point"),
                 description=f"""\u200b
@@ -119,13 +119,13 @@ class ResearchView(discord.ui.View):
             )
             
             embed = await add_fort_fields(self.client, embed, current_levels)
-            embed.add_field(name=f"\u200b", value=f"*No more research points!*")
+            embed.add_field(name=f"\u200b", value=f"*No more research points!*\n\u200b")
             embed = await stw.set_thumbnail(self.client, embed, "research")
             embed = await stw.add_requested_footer(interaction, embed)
-            self.total_points = research_points_item
             for child in self.children:
                 child.disabled = True
             await interaction.edit_original_message(embed=embed, view=self)
+            return
             
         spent_points = self.total_points['quantity'] - research_points_item['quantity']
         embed = discord.Embed(
@@ -273,8 +273,12 @@ class Research(ext.Cog):
             await stw.slash_edit_original(auth_info[0], slash, final_embeds)
         except: pass
 
-        
-        current_levels = json_response['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
+        try:
+            current_levels = json_response['profileChanges'][0]['profile']['stats']['attributes']['research_levels']
+        except Exception as e:
+            print(e, json_response)
+            return
+            
         if current_levels["offense"] + current_levels["fortitude"] + current_levels["resistance"] + current_levels["technology"] == 480:
             embed = discord.Embed(
                 title=await stw.add_emoji_title(self.client, "Max", "crown"),
@@ -294,6 +298,7 @@ class Research(ext.Cog):
         research_guid_check = await asyncio.gather(asyncio.to_thread(self.check_for_research_guid_key, json_response))
         print(research_guid_check)
         if research_guid_check[0] == None:
+            print("errors.stwdaily.failed_guid_research encountered:", json_response)
             error_code = "errors.stwdaily.failed_guid_research"
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
@@ -317,6 +322,7 @@ class Research(ext.Cog):
         # Get total points
         total_points_check = await asyncio.gather(asyncio.to_thread(self.check_for_research_points_item, json_response))
         if total_points_check[0] == None:
+            print("errors.stwdaily.failed_total_points encountered:", json_response)
             error_code = "errors.stwdaily.failed_total_points"
             embed = await stw.post_error_possibilities(ctx, self.client, "research", acc_name, error_code, support_url)
             final_embeds.append(embed)
