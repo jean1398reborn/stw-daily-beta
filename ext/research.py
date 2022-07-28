@@ -21,6 +21,10 @@ from discord.commands import (  # Importing the decorator that makes slash comma
 )
 
 async def add_fort_fields(client, embed, current_levels, extra_white_space=False):
+    """
+    Adds the 2x2 grid of fortification stats seen in the research command
+    """
+    
     offense = current_levels["offense"]
     fortitude = current_levels["fortitude"]
     resistance = current_levels["resistance"]
